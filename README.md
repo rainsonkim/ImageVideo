@@ -6,7 +6,7 @@
  maven { url "https://jitpack.io" }
  
  dependencies {
-  implementation 'com.github.rainsonkim:ImageVideo:1.0.0'
+  implementation 'com.github.rainsonkim:ImageVideo:1.0.1'
  }
  
  
