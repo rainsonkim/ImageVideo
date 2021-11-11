@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Rect;
@@ -63,6 +64,7 @@ import com.sany.imagevideo.jcamera.listener.TypeListener;
 import com.sany.imagevideo.jcamera.util.ContentValue;
 import com.sany.imagevideo.jcamera.util.FileUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -482,29 +484,48 @@ public class VideoCameraActivity extends Activity {
                 ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
                 byte[] data = new byte[buffer.remaining()];
                 buffer.get(data);
+
+                Log.e(TAG, "onImageAvailable: data.length "+data.length);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(data,0,data.length);
+
                 FileUtil.createSavePath(ContentValue.IMAGE_PATH);//判断有没有这个文件夹，没有的话需要创建
                 picSavePath = ContentValue.IMAGE_PATH + "IMG_" + System.currentTimeMillis() + ".jpg";
-                FileOutputStream fos = null;
                 try {
-                    fos = new FileOutputStream(picSavePath);
-                    fos.write(data, 0, data.length);//保存图片
-
+                    FileOutputStream out = new FileOutputStream(picSavePath);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 30, out);
                     Message msg = new Message();
                     msg.what = 0;
                     msg.obj = picSavePath;
                     mBackgroundHandler.sendMessage(msg);
-                } catch (IOException e) {
+                    out.flush();
+                    out.close();
+                } catch (Exception e) {
                     e.printStackTrace();
-                } finally {
-                    if (fos != null) {
-                        try {
-                            fos.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
                 }
-                mImage.close();
+//                buffer.get(data);
+//                FileUtil.createSavePath(ContentValue.IMAGE_PATH);//判断有没有这个文件夹，没有的话需要创建
+//                picSavePath = ContentValue.IMAGE_PATH + "IMG_" + System.currentTimeMillis() + ".jpg";
+//                FileOutputStream fos = null;
+//                try {
+//                    fos = new FileOutputStream(picSavePath);
+//                    fos.write(data, 0, data.length);//保存图片
+//
+//                    Message msg = new Message();
+//                    msg.what = 0;
+//                    msg.obj = picSavePath;
+//                    mBackgroundHandler.sendMessage(msg);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                } finally {
+//                    if (fos != null) {
+//                        try {
+//                            fos.close();
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                }
+//                mImage.close();
             }
         }, mBackgroundHandler);
 
@@ -539,6 +560,23 @@ public class VideoCameraActivity extends Activity {
                 }
             }
         };
+    }
+
+    /**
+     * @param //将字节数组转换为ImageView可调用的Bitmap对象
+     * @param bytes
+     * @param opts
+     * @return Bitmap
+     */
+    public Bitmap getPicFromBytes(byte[] bytes,
+                                         BitmapFactory.Options opts) {
+        if (bytes != null)
+            if (opts != null)
+                return BitmapFactory.decodeByteArray(bytes, 0, bytes.length,
+                        opts);
+            else
+                return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        return null;
     }
     /**
      * ******************************openCamera(打开Camera)*****************************************
