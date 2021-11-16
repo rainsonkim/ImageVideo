@@ -1,5 +1,6 @@
 package com.sany.imagevideo.jcamera.util;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
@@ -13,8 +14,8 @@ import java.io.IOException;
 public class FileUtil {
     private static final String TAG = "ID";
 
-    public static String saveBitmap(Bitmap b) {
-        String dir = ContentValue.PATH + "Camera";
+    public static String saveBitmap(Context mContext,Bitmap b) {
+        String dir = ContentValue.getRootPath(mContext) + "Camera";
         long dataTake = System.currentTimeMillis();
         String jpegName = dir + File.separator + "picture_" + dataTake + ".jpg";
         try {

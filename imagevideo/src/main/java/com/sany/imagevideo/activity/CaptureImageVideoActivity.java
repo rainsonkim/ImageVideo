@@ -43,12 +43,9 @@ public class CaptureImageVideoActivity extends Activity {
         addListener();
     }
     private void initView(){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);  //设置全屏
-        }
-
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);  //设置全屏
         jCameraView = findViewById(R.id.jCameraView);
-        jCameraView.setSaveVideoPath(ContentValue.VIDEO_PATH);
+        jCameraView.setSaveVideoPath(ContentValue.getVideoPath(CaptureImageVideoActivity.this));
         jCameraView.setFeatures(JCameraView.BUTTON_STATE_BOTH);
         jCameraView.setMediaQuality(JCameraView.MEDIA_QUALITY_MIDDLE);
     }
@@ -60,13 +57,13 @@ public class CaptureImageVideoActivity extends Activity {
                 isPhoto = true;
                 //获取图片bitmap
                 Log.i("ID", "bitmap = " + bitmap.getWidth());
-                imageUrl = FileUtil.saveBitmap(bitmap);
+                imageUrl = FileUtil.saveBitmap(CaptureImageVideoActivity.this,bitmap);
             }
 
             @Override
             public void recordSuccess(String url, Bitmap firstFrame,int[] vSize) {
                 isPhoto = false;
-                firstF = FileUtil.saveBitmap(firstFrame);
+                firstF = FileUtil.saveBitmap(CaptureImageVideoActivity.this,firstFrame);
                 videoUrl = url;
                 videoSize = vSize;
             }

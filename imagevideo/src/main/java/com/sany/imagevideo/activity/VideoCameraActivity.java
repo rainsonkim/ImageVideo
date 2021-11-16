@@ -488,8 +488,8 @@ public class VideoCameraActivity extends Activity {
                 Log.e(TAG, "onImageAvailable: data.length "+data.length);
                 Bitmap bitmap = BitmapFactory.decodeByteArray(data,0,data.length);
 
-                FileUtil.createSavePath(ContentValue.IMAGE_PATH);//判断有没有这个文件夹，没有的话需要创建
-                picSavePath = ContentValue.IMAGE_PATH + "IMG_" + System.currentTimeMillis() + ".jpg";
+                FileUtil.createSavePath(ContentValue.getImagePath(VideoCameraActivity.this));//判断有没有这个文件夹，没有的话需要创建
+                picSavePath = ContentValue.getImagePath(VideoCameraActivity.this) + "IMG_" + System.currentTimeMillis() + ".jpg";
                 try {
                     FileOutputStream out = new FileOutputStream(picSavePath);
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 30, out);
@@ -1015,7 +1015,7 @@ public class VideoCameraActivity extends Activity {
     }
 
     private String getVideoFilePath() {
-        return FileUtil.createFilePath(ContentValue.VIDEO_PATH, null, Long.toString(System.currentTimeMillis()));
+        return FileUtil.createFilePath(ContentValue.getVideoPath(VideoCameraActivity.this), null, Long.toString(System.currentTimeMillis()));
     }
 
 }
