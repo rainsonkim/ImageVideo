@@ -79,6 +79,10 @@ import java.util.List;
 public class VideoCameraActivity extends Activity {
 
     private static final String TAG = "VideoCameraActivity";
+    private static final String IMAGE_QUALITY = "imageQuality";
+    private static final String VIDEO_SECONDS = "videoSeconds";
+    private static final String VIDEO_BIT_RATE = "videoBitRate";
+    private static final String VIDEO_FRAME_RATE = "videoFrameRate";
     private AutoFitTextureView mTextureView;
     private CaptureLayout2 mCaptureLayout;
 
@@ -125,6 +129,16 @@ public class VideoCameraActivity extends Activity {
     private CustomVideoView video_preview;
     private Intent resultIntent;
 
+    private int imageQuality = 30;
+    private int videoSeconds = 10;
+    //码率(比特率)：就是数据传输时单位时间传送的数据位数,一般我们用的单位是kbps即千位每秒。通俗一点的理解就是取样率，单位时间内取样率越大，
+    // 精度就越高，处理出来的文件就越接近原始文件，这个跟单帧图片的信息量有关 ，越大图片储存的信息量越大，图片就越清晰，还原的画质就越好，
+    // 当然不是越大越好。这样只会增加数据量，浪费内存。（码率越高许多的细节就会越完整，但是人眼的辨别能力有限，许多细节的东西是分辨不出的）。
+    // 计算：码率(kbps)=文件大小(字节)X8 /时间(秒)/1000
+    private int videoBitRate = 1200*1280;
+    //帧率：指的的视频每秒钟播放的图片数目，电影基本的帧率为24帧每秒（大于这个数时人眼就看到的是流畅的视频了），二维动画的帧率为15帧每秒。帧率越小，那么你看到的视频就会越卡。动作就不连贯。
+    private int videoFrameRate = 30;
+
     //旋转角度
     static {
         DEFAULT_ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -149,9 +163,11 @@ public class VideoCameraActivity extends Activity {
         initListener();
     }
     private void init(){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);  //设置全屏
-        }
+        imageQuality = getIntent().getIntExtra(IMAGE_QUALITY,30);
+        videoSeconds = getIntent().getIntExtra(VIDEO_SECONDS,10);
+        videoBitRate = getIntent().getIntExtra(VIDEO_FRAME_RATE,1200*1280);
+        videoFrameRate = getIntent().getIntExtra(VIDEO_BIT_RATE,30);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);  //设置全屏
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
         widthPixels = dm.widthPixels;
@@ -161,7 +177,7 @@ public class VideoCameraActivity extends Activity {
     private void initView(){
         mTextureView = findViewById(R.id.texture);
         mCaptureLayout = findViewById(R.id.capture_layout);
-        int maxRecordTime = 10 * 1000;
+        int maxRecordTime = videoSeconds * 1000;
         mCaptureLayout.setDuration(maxRecordTime);
         mCaptureLayout.setIconSrc(0, 0);
 
@@ -171,6 +187,7 @@ public class VideoCameraActivity extends Activity {
         video_preview = findViewById(R.id.video_preview);
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void initListener(){
         //拍照 录像
         mCaptureLayout.setCaptureLisenter(new CaptureListener2() {
@@ -251,46 +268,27 @@ public class VideoCameraActivity extends Activity {
             }
         });
         //返回监听事件
-        mCaptureLayout.setLeftClickListener(new ClickListener() {
-            @Override
-            public void onClick() {
-                finish();
-            }
-        });
+        mCaptureLayout.setLeftClickListener(this::finish);
         //拍摄完成后当前界面预览视频
-        video_preview.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                mp.start();//循环播放
-                mp.setLooping(true);
-            }
+        video_preview.setOnPreparedListener(mp -> {
+            mp.start();//循环播放
+            mp.setLooping(true);
         });
-        video_preview.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
-                Log.e(TAG,"MediaPlayer--play error");
-                return false;
-            }
+        video_preview.setOnErrorListener((mp, what, extra) -> {
+            Log.e(TAG,"MediaPlayer--play error");
+            return false;
         });
         //切换摄像头
-        iv_switch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switchCamera();
-            }
-        });
+        iv_switch.setOnClickListener(v -> switchCamera());
         //拍照时支持双指缩放
-        mTextureView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent event) {
-                //两指缩放
-                changeZoom(event);
-                return true;
-            }
+        mTextureView.setOnTouchListener((view, event) -> {
+            //两指缩放
+            changeZoom(event);
+            return true;
         });
     }
 
-    private TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
+    private final TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
 
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int w, int h) {
@@ -317,7 +315,7 @@ public class VideoCameraActivity extends Activity {
 
     };
 
-    @SuppressLint("InvalidWakeLockTag")
+    @SuppressLint({"InvalidWakeLockTag", "WakelockTimeout"})
     @Override
     public void onResume() {
         super.onResume();
@@ -448,7 +446,7 @@ public class VideoCameraActivity extends Activity {
             mCaptureSize = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new Comparator<Size>() {
                 @Override
                 public int compare(Size lhs, Size rhs) {
-                    return Long.signum(lhs.getWidth() * lhs.getHeight() - rhs.getHeight() * rhs.getWidth());
+                    return Long.signum((long) lhs.getWidth() * lhs.getHeight() - (long) rhs.getHeight() * rhs.getWidth());
                 }
             });
 
@@ -492,7 +490,7 @@ public class VideoCameraActivity extends Activity {
                 picSavePath = ContentValue.getImagePath(VideoCameraActivity.this) + "IMG_" + System.currentTimeMillis() + ".jpg";
                 try {
                     FileOutputStream out = new FileOutputStream(picSavePath);
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 30, out);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, imageQuality, out);
                     Message msg = new Message();
                     msg.what = 0;
                     msg.obj = picSavePath;
@@ -581,6 +579,7 @@ public class VideoCameraActivity extends Activity {
     /**
      * ******************************openCamera(打开Camera)*****************************************
      */
+    @SuppressLint("MissingPermission")
     private void openCamera(String CameraId) {
         //获取摄像头的管理者CameraManager
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
@@ -596,7 +595,7 @@ public class VideoCameraActivity extends Activity {
         }
     }
     //摄像头状态回调
-    private CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
+    private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
         @Override
         public void onOpened(CameraDevice cameraDevice) {
@@ -783,9 +782,7 @@ public class VideoCameraActivity extends Activity {
                     Toast.makeText(VideoCameraActivity.this,"Failed", Toast.LENGTH_SHORT).show();
                 }
             }, null);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (CameraAccessException | IOException e) {
             e.printStackTrace();
         }
     }
@@ -845,8 +842,8 @@ public class VideoCameraActivity extends Activity {
         }
 
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mMediaRecorder.setVideoEncodingBitRate(1200*1280);
-        mMediaRecorder.setVideoFrameRate(30);
+        mMediaRecorder.setVideoEncodingBitRate(videoBitRate);
+        mMediaRecorder.setVideoFrameRate(videoFrameRate);
         mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);

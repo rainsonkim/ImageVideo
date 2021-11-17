@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -101,8 +102,8 @@ public class CaptureButton2 extends View {
         Log.i("","CaptureButtom end");
         min_duration = 1100;              //默认最短录制时间为1.1s
 
-        center_X = (button_size + outside_add_size * 2) / 2;
-        center_Y = (button_size + outside_add_size * 2) / 2;
+        center_X = (button_size + outside_add_size * 2) / 2F;
+        center_Y = (button_size + outside_add_size * 2) / 2F;
 
         rectF = new RectF(
                 center_X - (button_radius + outside_add_size - strokeWidth / 2),
@@ -139,6 +140,7 @@ public class CaptureButton2 extends View {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -392,7 +394,7 @@ public class CaptureButton2 extends View {
 
     //是否空闲状态
     public boolean isIdle() {
-        return state == STATE_IDLE ? true : false;
+        return state == STATE_IDLE;
     }
 
     //设置状态
