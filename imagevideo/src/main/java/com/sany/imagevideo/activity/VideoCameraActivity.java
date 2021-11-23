@@ -61,6 +61,7 @@ import com.sany.imagevideo.camera2.util.Camera2Config;
 import com.sany.imagevideo.camera2.util.Camera2Util;
 import com.sany.imagevideo.jcamera.listener.ClickListener;
 import com.sany.imagevideo.jcamera.listener.TypeListener;
+import com.sany.imagevideo.jcamera.util.AngleUtil;
 import com.sany.imagevideo.jcamera.util.ContentValue;
 import com.sany.imagevideo.jcamera.util.FileUtil;
 
@@ -74,6 +75,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class VideoCameraActivity extends Activity {
@@ -484,13 +486,18 @@ public class VideoCameraActivity extends Activity {
                 buffer.get(data);
 
                 Log.e(TAG, "onImageAvailable: data.length "+data.length);
-                Bitmap bitmap = BitmapFactory.decodeByteArray(data,0,data.length);
+
 
                 FileUtil.createSavePath(ContentValue.getImagePath(VideoCameraActivity.this));//判断有没有这个文件夹，没有的话需要创建
                 picSavePath = ContentValue.getImagePath(VideoCameraActivity.this) + "IMG_" + System.currentTimeMillis() + ".jpg";
                 try {
                     FileOutputStream out = new FileOutputStream(picSavePath);
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, imageQuality, out);
+                    out.write(data, 0, data.length);
+                    File captureImage = new File(picSavePath);
+                    Bitmap bitmap = BitmapDecoder.decodeSampledBitmapFromFile(captureImage, new BitmapSize(widthPixels, heightPixels), Bitmap.Config.RGB_565);
+                    if(bitmap != null){
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, imageQuality, out);
+                    }
                     Message msg = new Message();
                     msg.what = 0;
                     msg.obj = picSavePath;
@@ -500,30 +507,6 @@ public class VideoCameraActivity extends Activity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-//                buffer.get(data);
-//                FileUtil.createSavePath(ContentValue.IMAGE_PATH);//判断有没有这个文件夹，没有的话需要创建
-//                picSavePath = ContentValue.IMAGE_PATH + "IMG_" + System.currentTimeMillis() + ".jpg";
-//                FileOutputStream fos = null;
-//                try {
-//                    fos = new FileOutputStream(picSavePath);
-//                    fos.write(data, 0, data.length);//保存图片
-//
-//                    Message msg = new Message();
-//                    msg.what = 0;
-//                    msg.obj = picSavePath;
-//                    mBackgroundHandler.sendMessage(msg);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                } finally {
-//                    if (fos != null) {
-//                        try {
-//                            fos.close();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }
-//                mImage.close();
             }
         }, mBackgroundHandler);
 
