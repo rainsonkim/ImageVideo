@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CaptureDemo.iml" filepath="$PROJECT_DIR$/CaptureDemo.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/CaptureDemo.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/CaptureDemo.app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/imagevideo/CaptureDemo.imagevideo.iml" filepath="$PROJECT_DIR$/.idea/modules/imagevideo/CaptureDemo.imagevideo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ImageVideo.iml" filepath="$PROJECT_DIR$/.idea/modules/ImageVideo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/ImageVideo.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/ImageVideo.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/imagevideo/ImageVideo.imagevideo.iml" filepath="$PROJECT_DIR$/.idea/modules/imagevideo/ImageVideo.imagevideo.iml" />
     </modules>
   </component>
 </project>
